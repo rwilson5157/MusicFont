@@ -81,7 +81,7 @@ def build_html(rows):
 
         rows_html = "\n".join(row_html_parts)
         total = len(rows)
-        return f"""
+        html = """
 <!doctype html>
 <html lang="en">
 <head>
@@ -146,20 +146,24 @@ def build_html(rows):
             document.querySelector('.count').textContent = 'Showing: ' + shown + ' / ' + {total};
         }}
         search.addEventListener('input', filter);
-        document.getElementById('copyBtn').addEventListener('click', async () => {{
+        document.getElementById('copyBtn').addEventListener('click', async () => {
             const trs = Array.from(rows.querySelectorAll('tr')).filter(t => t.style.display !== 'none');
-            const names = trs.map(tr => tr.children[1].textContent.trim()).filter(Boolean);
-            const text = names.join('\n');
-            try {{
+            const lines = trs.map(tr => {
+                const code = tr.children[2].textContent.trim();
+                const name = tr.children[1].textContent.trim();
+                return (code ? code + ' ' : '') + name;
+            }).filter(Boolean);
+            const text = lines.join('\n');
+            try {
                 await navigator.clipboard.writeText(text);
                 const b = document.getElementById('copyBtn');
                 const old = b.textContent;
                 b.textContent = 'Copied';
                 setTimeout(() => b.textContent = old, 1200);
-            }} catch (err) {{
+            } catch (err) {
                 alert('Copy failed: ' + err);
-            }}
-        }});
+            }
+        });
 
         // Single-row selection logic for copying selected codepoint
         function clearSelection() {{
@@ -186,23 +190,31 @@ def build_html(rows):
 
         attachRowHandlers();
 
-        copySelectedBtn.addEventListener('click', async () => {{
+        copySelectedBtn.addEventListener('click', async () => {
             const sel = rows.querySelector('tr.selected');
             if (!sel) return;
-            const codecell = sel.children[2].textContent.trim();
-            try {{
-                await navigator.clipboard.writeText(codecell);
+            const code = sel.children[2].textContent.trim();
+            const name = sel.children[1].textContent.trim();
+            const text = (code ? code + ' ' : '') + name;
+            try {
+                await navigator.clipboard.writeText(text);
                 const old = copySelectedBtn.textContent;
                 copySelectedBtn.textContent = 'Copied';
                 setTimeout(() => copySelectedBtn.textContent = old, 1200);
-            }} catch (err) {{
+            } catch (err) {
                 alert('Copy failed: ' + err);
-            }}
-        }});
+            }
+        });
     </script>
 </body>
 </html>
 """
+
+        # Convert doubled braces (used previously for f-string escaping) to single braces
+        html = html.replace('{{', '{').replace('}}', '}')
+        # Inject generated rows and totals
+        html = html.replace('{rows_html}', rows_html).replace('{total}', str(total))
+        return html
 
 
 class Handler(SimpleHTTPRequestHandler):

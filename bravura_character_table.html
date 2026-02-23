@@ -317,8 +317,12 @@
 
     document.getElementById('copyVisibleBtn').addEventListener('click', async () => {
       const trs = Array.from(rowsEl.querySelectorAll('tr')).filter(t => t.style.display !== 'none');
-      const names = trs.map(tr => tr.children[1].textContent.trim()).filter(Boolean);
-      const text = names.join('\n');
+      const lines = trs.map(tr => {
+        const code = tr.children[2].textContent.trim();
+        const name = tr.children[1].textContent.trim();
+        return (code ? code + ' ' : '') + name;
+      }).filter(Boolean);
+      const text = lines.join('\n');
       try {
         await navigator.clipboard.writeText(text);
         const b = document.getElementById('copyVisibleBtn');
@@ -334,8 +338,10 @@
       const sel = rowsEl.querySelector('tr.selected');
       if (!sel) return;
       const code = sel.children[2].textContent.trim();
+      const name = sel.children[1].textContent.trim();
+      const text = (code ? code + ' ' : '') + name;
       try {
-        await navigator.clipboard.writeText(code);
+        await navigator.clipboard.writeText(text);
         const b = document.getElementById('copySelectedBtn');
         const old = b.textContent;
         b.textContent = 'Copied';
