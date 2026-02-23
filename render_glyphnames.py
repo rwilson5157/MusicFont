@@ -146,14 +146,14 @@ def build_html(rows):
             document.querySelector('.count').textContent = 'Showing: ' + shown + ' / ' + {total};
         }}
         search.addEventListener('input', filter);
+        // Copy only the selected row: include codepoint, HTML entity, and name (space-separated)
         document.getElementById('copyBtn').addEventListener('click', async () => {
-            const trs = Array.from(rows.querySelectorAll('tr')).filter(t => t.style.display !== 'none');
-            const lines = trs.map(tr => {
-                const code = tr.children[2].textContent.trim();
-                const name = tr.children[1].textContent.trim();
-                return (code ? code + ' ' : '') + name;
-            }).filter(Boolean);
-            const text = lines.join('\n');
+            const sel = rows.querySelector('tr.selected');
+            if (!sel) return;
+            const code = sel.children[2].textContent.trim();
+            const entity = sel.children[3].textContent.trim();
+            const name = sel.children[1].textContent.trim();
+            const text = [(code || ''), (entity || ''), name].filter(Boolean).join(' ');
             try {
                 await navigator.clipboard.writeText(text);
                 const b = document.getElementById('copyBtn');
@@ -170,6 +170,7 @@ def build_html(rows):
             const prev = rows.querySelector('tr.selected');
             if (prev) prev.classList.remove('selected');
             copySelectedBtn.disabled = true;
+            document.getElementById('copyBtn').disabled = true;
         }}
 
         function attachRowHandlers() {{
@@ -184,6 +185,7 @@ def build_html(rows):
                     clearSelection();
                     tr.classList.add('selected');
                     copySelectedBtn.disabled = false;
+                    document.getElementById('copyBtn').disabled = false;
                 }});
             }});
         }}

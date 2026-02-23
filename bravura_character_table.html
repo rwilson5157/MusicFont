@@ -300,17 +300,20 @@
 
     function attachRowHandlers() {
       const copyBtn = document.getElementById('copySelectedBtn');
+      const copyVisibleBtn = document.getElementById('copyVisibleBtn');
       Array.from(rowsEl.querySelectorAll('tr')).forEach(tr => {
         tr.style.cursor = 'pointer';
         tr.addEventListener('click', () => {
           if (tr.classList.contains('selected')) {
             tr.classList.remove('selected');
             copyBtn.disabled = true;
+            copyVisibleBtn.disabled = true;
             return;
           }
           clearSelection();
           tr.classList.add('selected');
           copyBtn.disabled = false;
+          copyVisibleBtn.disabled = false;
         });
       });
     }
